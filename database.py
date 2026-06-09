@@ -7,7 +7,7 @@ def init_db():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
     
-    # 1. Foydalanuvchilar jadvali
+    # 1. Foydalanuvchilar jadvali (Premium yoki bepul foydalanayotganini ajratadi)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS users (
             user_id INTEGER PRIMARY KEY,
@@ -18,7 +18,7 @@ def init_db():
         )
     ''')
     
-    # 2. Kitoblar jadvali
+    # 2. Kitoblar jadvali (Masalan: Cambridge IELTS)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS books (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,7 +27,7 @@ def init_db():
         )
     ''')
     
-    # 3. Unitlar (Bo'limlar) jadvali
+    # 3. Unitlar (Bo'limlar) jadvali (Masalan: Unit 1, Unit 2)
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS units (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -38,7 +38,7 @@ def init_db():
         )
     ''')
     
-    # 4. Mavzular (Darslar) jadvali
+    # 4. Mavzular va Web App (Wordwall) o'yinlari jadvali
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS themes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,7 +57,7 @@ def init_db():
         )
     ''')
     
-    # 5. Xaridlar jadvali
+    # 5. Xarid qilingan kitoblar jadvali
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS purchases (
             user_id INTEGER,
@@ -68,17 +68,18 @@ def init_db():
     
     conn.commit()
     
-    # --- SINOV MA'LUMOTLARI ---
-    cursor.execute("INSERT OR IGNORE INTO users (user_id, username, full_name, is_premium_user) VALUES (12345, 'test_user', 'Sinovchi', 1)")
-    
+    # --- BAZAGA SINOV UCHUN "CAMBRIDGE IELTS" MA'LUMOTLARINI QO'SHISH ---
     cursor.execute("SELECT id FROM books WHERE name = 'Cambridge IELTS'")
     if not cursor.fetchone():
+        # Kitob qo'shish
         cursor.execute("INSERT INTO books (name, price) VALUES ('Cambridge IELTS', 0.0)")
         book_id = cursor.lastrowid
         
+        # Bepul sinov uchun Unit 1 qo'shish
         cursor.execute("INSERT INTO units (book_id, name, is_premium) VALUES (?, 'Unit 1', 0)", (book_id,))
         unit_id = cursor.lastrowid
         
+        # Wordwall Web App uchun tayyor lug'at tarkibi
         sample_vocabulary = [
             {"en": "Develop", "uz": "rivojlantirmoq"},
             {"en": "Improve", "uz": "yaxshilamoq"},
@@ -87,6 +88,7 @@ def init_db():
             {"en": "Knowledge", "uz": "bilim"}
         ]
         
+        # Mavzu va unga biriktirilgan Wordwall Web App o'yin havolalari
         cursor.execute("""
             INSERT INTO themes (
                 unit_id, name, content_text, video_url, key_words,
@@ -94,19 +96,19 @@ def init_db():
             ) VALUES (?, 'Reading 1', ?, ?, ?, ?, ?, ?, ?, ?, 0)
         """, (
             unit_id,
-            "How tennis rackets have changed\n\nIn 2016, the British professional tennis player Andy Murray was ranked as the world's number one tennis player...",
+            "How tennis rackets have changed\n\nIn 2016, the British professional tennis player Andy Murray...",
             "https://www.w3schools.com/html/mov_bbb.mp4",
             json.dumps(sample_vocabulary),
-            "https://wordwall.net/embed/flashcard",
-            "https://wordwall.net/embed/fillgap",
-            "https://wordwall.net/embed/match",
-            "https://wordwall.net/embed/wheel",
-            "https://wordwall.net/embed/definition"
+            "https://wordwall.net/embed/flashcard", # Flashcard Web App
+            "https://wordwall.net/embed/fillgap",   # Fill in the gaps Web App
+            "https://wordwall.net/embed/match",     # Match Web App
+            "https://wordwall.net/embed/wheel",     # Wheel Web App
+            "https://wordwall.net/embed/definition" # Definition Web App
         ))
         
     conn.commit()
     conn.close()
-    print("Baza tayyor!")
 
-# Majburiy ishga tushirish qatori
-init_db()
+if __name__ == "__main__":
+    init_db()
+    print("Ma'lumotlar bazasi muvaffaqiyatli yaratildi va sinov darslari yuklandi!")
