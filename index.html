@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="uz">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LMS Vocabulary Platform</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f4f7f6;
+            margin: 0;
+            padding: 15px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            background: linear-gradient(135deg, #24292e, #2f363d);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        .header h1 { margin: 0; font-size: 22px; }
+        .header p { margin: 5px 0 0 0; opacity: 0.8; font-size: 14px; }
+        
+        .section-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 15px 5px 10px 5px;
+            color: #555;
+        }
+        .button-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+        }
+        .btn {
+            background-color: white;
+            border: 2px solid #e1e4e8;
+            padding: 15px;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+        .btn:active {
+            background-color: #f0f3f6;
+            transform: scale(0.98);
+        }
+        .btn-icon { font-size: 20px; }
+        .game-btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+        }
+        .game-btn:active { background: #004085; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1 id="user-title">LMS Platformasi</h1>
+        <p>Cambridge IELTS Vocabulary & Games</p>
+    </div>
+
+    <div class="section-title">📘 Darsliklar va Bo'limlar</div>
+    <div class="button-grid">
+        <button class="btn" onclick="showAlert('Cambridge IELTS tanlandi')">
+            <span>📘 Cambridge IELTS 19</span>
+            <span class="btn-icon">➡️</span>
+        </button>
+        <button class="btn" onclick="showAlert('Unit 1 darslari')">
+            <span>📂 Unit 1: Reading Vocabulary</span>
+            <span class="btn-icon">➡️</span>
+        </button>
+    </div>
+
+    <div class="section-title">🎮 Wordwall Web App O'yinlari</div>
+    <div class="button-grid">
+        <a href="https://wordwall.net/embed/flashcard" style="text-decoration: none;">
+            <button class="btn game-btn">
+                <span>🎮 Play Flashcards</span>
+                <span class="btn-icon">⚡</span>
+            </button>
+        </a>
+        <a href="https://wordwall.net/embed/match" style="text-decoration: none;">
+            <button class="btn game-btn">
+                <span>🎮 Play Match Words</span>
+                <span class="btn-icon">🧩</span>
+            </button>
+        </a>
+    </div>
+
+    <script>
+        // Telegram Web App ob'ektini ishga tushirish
+        const tg = window.Telegram.WebApp;
+        tg.expand(); // Oynani birdaniga katta qilib ochish
+
+        // Foydalanuvchi ismini Telegramdan olib ekranga chiqarish
+        if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
+            document.getElementById('user-title').innerText = "Salom, " + tg.initDataUnsafe.user.first_name + "!";
+        }
+
+        function showAlert(text) {
+            tg.MainButton.setText(text);
+            tg.MainButton.show();
+        }
+    </script>
+</body>
+</html>
