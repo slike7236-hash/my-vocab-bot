@@ -1,114 +1,185 @@
+import os
+import logging
 import sqlite3
 import json
+from aiogram import Bot, Dispatcher, html
+from aiogram.client.default import DefaultBotProperties
+from aiogram.enums import ParseMode
+from aiogram.filters import CommandStart
+from aiogram.types import Message, InlineKeyboardMarkup, InlineKeyboardButton, CallbackQuery, WebAppInfo
+import uvicorn
+from fastapi import FastAPI
+from contextlib import asynccontextmanager
 
-DB_NAME = "lms_system.db"
+# database.py faylimizdan bazani ulash
+from database import init_db, DB_NAME
 
-def init_db():
+# ⚠️ O'ZINGIZNING HAQIQIY TELEGRAM BOT TOKENINGIZNI SHU YERGA QO'YING ⚠️
+TOKEN = "BU_YERGA_O'Z_TOKENINGIZNI_QO'YING"
+
+logging.basicConfig(level=logging.INFO)
+
+# Bot ishga tushishidan oldin bazani tekshirish/yaratish
+init_db()
+
+dp = Dispatcher()
+bot = Bot(token=TOKEN, default=DefaultBotProperties(parse_mode=ParseMode.HTML))
+
+# --- YORDAMCHI FUNKSIYALAR (BAZA BILAN ISHLASH) ---
+def get_books():
     conn = sqlite3.connect(DB_NAME)
     cursor = conn.cursor()
-    
-    # 1. Foydalanuvchilar jadvali (Premium yoki bepul foydalanayotganini ajratadi)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            user_id INTEGER PRIMARY KEY,
-            username TEXT,
-            full_name TEXT,
-            is_premium_user INTEGER DEFAULT 0,
-            joined_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-        )
-    ''')
-    
-    # 2. Kitoblar jadvali (Masalan: Cambridge IELTS)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS books (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            name TEXT NOT NULL,
-            price REAL DEFAULT 0.0
-        )
-    ''')
-    
-    # 3. Unitlar (Bo'limlar) jadvali (Masalan: Unit 1, Unit 2)
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS units (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            book_id INTEGER,
-            name TEXT NOT NULL,
-            is_premium INTEGER DEFAULT 1,
-            FOREIGN KEY (book_id) REFERENCES books(id) ON DELETE CASCADE
-        )
-    ''')
-    
-    # 4. Mavzular va Web App (Wordwall) o'yinlari jadvali
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS themes (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            unit_id INTEGER,
-            name TEXT NOT NULL,
-            content_text TEXT,
-            video_url TEXT,
-            key_words TEXT,
-            game_flashcard TEXT,
-            game_fill_gap TEXT,
-            game_match TEXT,
-            game_wheel TEXT,
-            game_definition TEXT,
-            is_premium INTEGER DEFAULT 1,
-            FOREIGN KEY (unit_id) REFERENCES units(id) ON DELETE CASCADE
-        )
-    ''')
-    
-    # 5. Xarid qilingan kitoblar jadvali
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS purchases (
-            user_id INTEGER,
-            book_id INTEGER,
-            PRIMARY KEY (user_id, book_id)
-        )
-    ''')
-    
-    conn.commit()
-    
-    # --- BAZAGA SINOV UCHUN "CAMBRIDGE IELTS" MA'LUMOTLARINI QO'SHISH ---
-    cursor.execute("SELECT id FROM books WHERE name = 'Cambridge IELTS'")
-    if not cursor.fetchone():
-        # Kitob qo'shish
-        cursor.execute("INSERT INTO books (name, price) VALUES ('Cambridge IELTS', 0.0)")
-        book_id = cursor.lastrowid
-        
-        # Bepul sinov uchun Unit 1 qo'shish
-        cursor.execute("INSERT INTO units (book_id, name, is_premium) VALUES (?, 'Unit 1', 0)", (book_id,))
-        unit_id = cursor.lastrowid
-        
-        # Wordwall Web App uchun tayyor lug'at tarkibi
-        sample_vocabulary = [
-            {"en": "Develop", "uz": "rivojlantirmoq"},
-            {"en": "Improve", "uz": "yaxshilamoq"},
-            {"en": "Success", "uz": "muvaffaqiyat"},
-            {"en": "Challenge", "uz": "qiyinchilik"},
-            {"en": "Knowledge", "uz": "bilim"}
-        ]
-        
-        # Mavzu va unga biriktirilgan Wordwall Web App o'yin havolalari
-        cursor.execute("""
-            INSERT INTO themes (
-                unit_id, name, content_text, video_url, key_words,
-                game_flashcard, game_fill_gap, game_match, game_wheel, game_definition, is_premium
-            ) VALUES (?, 'Reading 1', ?, ?, ?, ?, ?, ?, ?, ?, 0)
-        """, (
-            unit_id,
-            "How tennis rackets have changed\n\nIn 2016, the British professional tennis player Andy Murray...",
-            "https://www.w3schools.com/html/mov_bbb.mp4",
-            json.dumps(sample_vocabulary),
-            "https://wordwall.net/embed/flashcard", # Flashcard Web App
-            "https://wordwall.net/embed/fillgap",   # Fill in the gaps Web App
-            "https://wordwall.net/embed/match",     # Match Web App
-            "https://wordwall.net/embed/wheel",     # Wheel Web App
-            "https://wordwall.net/embed/definition" # Definition Web App
-        ))
-        
+    cursor.execute("SELECT id, name FROM books")
+    books = cursor.fetchall()
+    conn.close()
+    return books
+
+def get_units(book_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name FROM units WHERE book_id = ?", (book_id,))
+    units = cursor.fetchall()
+    conn.close()
+    return units
+
+def get_themes(unit_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("SELECT id, name FROM themes WHERE unit_id = ?", (unit_id,))
+    themes = cursor.fetchall()
+    conn.close()
+    return themes
+
+def get_theme_details(theme_id):
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("""
+        SELECT name, content_text, video_url, key_words, 
+               game_flashcard, game_fill_gap, game_match, game_wheel, game_definition 
+        FROM themes WHERE id = ?
+    """, (theme_id,))
+    row = cursor.fetchone()
+    conn.close()
+    return row
+
+# --- BOT COMMANDS & HANDLERS ---
+
+# /start bosilganda kutib olish va Kitoblarni chiqarish
+@dp.message(CommandStart())
+async def command_start_handler(message: Message) -> None:
+    # Foydalanuvchini bazaga qo'shib qo'yish (yoki yangilash)
+    conn = sqlite3.connect(DB_NAME)
+    cursor = conn.cursor()
+    cursor.execute("""
+        INSERT INTO users (user_id, username, full_name) 
+        VALUES (?, ?, ?) 
+        ON CONFLICT(user_id) DO UPDATE SET full_name=excluded.full_name
+    """, (message.from_user.id, message.from_user.username, message.from_user.full_name))
     conn.commit()
     conn.close()
 
+    welcome_text = (
+        f"👋 Salom, {html.bold(message.from_user.full_name)}!\n\n"
+        f"📚 {html.italic('LMS Vocabulary & WebApp Platformasiga')} xush kelibsiz!\n"
+        f"Quyidagi ro'yxatdan o'zingizga kerakli darslikni tanlang:"
+    )
+    
+    # Kitoblarni tugma qilib chiqarish
+    books = get_books()
+    keyboard_buttons = []
+    for b_id, b_name in books:
+        keyboard_buttons.append([InlineKeyboardButton(text=f"📘 {b_name}", callback_data=f"book_{b_id}")])
+        
+    reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+    await message.answer(welcome_text, reply_markup=reply_markup)
+
+# Kitob tanlanganda Unitlarni chiqarish
+@dp.callbackQuery(lambda c: c.data.startswith('book_'))
+async def process_book_select(callback_query: CallbackQuery):
+    book_id = int(callback_query.data.split('_')[1])
+    units = get_units(book_id)
+    
+    keyboard_buttons = []
+    for u_id, u_name in units:
+        keyboard_buttons.append([InlineKeyboardButton(text=f"📂 {u_name}", callback_data=f"unit_{u_id}")])
+    
+    # Orqaga qaytish tugmasi
+    keyboard_buttons.append([InlineKeyboardButton(text="⬅️ Bosh sahifa", callback_data="back_to_books")])
+    
+    reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+    await callback_query.message.edit_text(text="🎯 Bo'limni (Unit) tanlang:", reply_markup=reply_markup)
+
+# Unit tanlanganda Mavzularni (Themes/Readings) chiqarish
+@dp.callbackQuery(lambda c: c.data.startswith('unit_'))
+async def process_unit_select(callback_query: CallbackQuery):
+    unit_id = int(callback_query.data.split('_')[1])
+    themes = get_themes(unit_id)
+    
+    keyboard_buttons = []
+    for t_id, t_name in themes:
+        keyboard_buttons.append([InlineKeyboardButton(text=f"📝 {t_name}", callback_data=f"theme_{t_id}")])
+        
+    keyboard_buttons.append([InlineKeyboardButton(text="⬅️ Orqaga", callback_data="back_to_books")])
+    
+    reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+    await callback_query.message.edit_text(text="📖 Mavzuni tanlang:", reply_markup=reply_markup)
+
+# Mavzu tanlanganda ichidagi matn va Wordwall Web App o'yin tugmalarini ko'rsatish
+@dp.callbackQuery(lambda c: c.data.startswith('theme_'))
+async def process_theme_select(callback_query: CallbackQuery):
+    theme_id = int(callback_query.data.split('_')[1])
+    theme = get_theme_details(theme_id)
+    
+    if not theme:
+        await callback_query.answer("Mavzu topilmadi!")
+        return
+        
+    t_name, content_text, video_url, key_words, f_card, f_gap, match, wheel, definition = theme
+    
+    # Telegram ekranida dars kontentini ko'rsatish
+    page_text = f"🎯 {html.bold(t_name)}\n\n{content_text}\n\n🎬 Video darslik havolasi: {video_url}"
+    
+    # Web App tugmalarini yaratish (Wordwall o'yinlari to'g'ridan-to'g'ri Telegramda ochiladi)
+    keyboard_buttons = []
+    if f_card:
+        keyboard_buttons.append([InlineKeyboardButton(text="🎮 O'yin: Flashcards (Web App)", web_app=WebAppInfo(url=f_card))])
+    if f_gap:
+        keyboard_buttons.append([InlineKeyboardButton(text="🎮 O'yin: Fill Gaps (Web App)", web_app=WebAppInfo(url=f_gap))])
+    if match:
+        keyboard_buttons.append([InlineKeyboardButton(text="🎮 O'yin: Match Words (Web App)", web_app=WebAppInfo(url=match))])
+        
+    keyboard_buttons.append([InlineKeyboardButton(text="⬅️ Mavzular ro'yxatiga qaytish", callback_data="back_to_books")])
+    
+    reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+    await callback_query.message.answer(page_text, reply_markup=reply_markup)
+    await callback_query.answer()
+
+# Bosh sahifaga qaytish handlerlari
+@dp.callbackQuery(lambda c: c.data == 'back_to_books')
+async def back_to_start(callback_query: CallbackQuery):
+    books = get_books()
+    keyboard_buttons = []
+    for b_id, b_name in books:
+        keyboard_buttons.append([InlineKeyboardButton(text=f"📘 {b_name}", callback_data=f"book_{b_id}")])
+        
+    reply_markup = InlineKeyboardMarkup(inline_keyboard=keyboard_buttons)
+    await callback_query.message.edit_text(text="📚 Kitoblar ro'yxati:", reply_markup=reply_markup)
+
+# --- FASTAPI & LIFESPAN (RAILWAY UCHUN DOIMIYLIK) ---
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logging.info("Bot ishga tushmoqda...")
+    import asyncio
+    asyncio.create_task(dp.start_polling(bot))
+    yield
+    await bot.session.close()
+
+app = FastAPI(lifespan=lifespan)
+
+@app.get("/")
+async def root():
+    return {"status": "LMS Bot is running successfully"}
+
 if __name__ == "__main__":
-    init_db()
-    print("Ma'lumotlar bazasi muvaffaqiyatli yaratildi va sinov darslari yuklandi!")
+    port = int(os.getenv("PORT", 8080))
+    uvicorn.run(app, host="0.0.0.0", port=port)
