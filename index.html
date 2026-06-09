@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LMS My Classroom Pro Ultimate</title>
+    <title>LMS My Classroom Perfect Hierarchy</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
@@ -22,11 +22,9 @@
             box-sizing: border-box;
         }
 
-        /* Ekranlar boshqaruvi */
         .screen { display: none; padding: 15px; padding-bottom: 80px; }
         .screen.active { display: block; }
 
-        /* Sarlavhalar va Navigatsiya */
         .header {
             background: white; padding: 12px; text-align: center;
             border-bottom: 2px solid var(--primary); margin-bottom: 15px;
@@ -35,7 +33,6 @@
         .nav-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
         .btn-box { border: 2px solid black; padding: 4px 12px; font-size: 12px; font-weight: bold; background: white; cursor: pointer; }
 
-        /* Katta Asosiy Tugmalar */
         .btn-main {
             background: white; border: 2px solid #ccc; width: 100%;
             padding: 15px; border-radius: 8px; font-weight: bold; font-size: 16px;
@@ -43,25 +40,22 @@
         }
         .btn-add { border: 2px dashed var(--primary); color: var(--primary); }
 
-        /* Kartochkalar (User Unitlar va Mavzular uchun) */
         .item-row {
             background: white; border: 2px solid #ddd; padding: 12px 15px;
             border-radius: 6px; margin-bottom: 8px; display: flex;
             justify-content: space-between; align-items: center; font-weight: bold;
+            cursor: pointer;
         }
         .badge-free { background: #27ae60; color: white; padding: 3px 12px; border-radius: 15px; font-size: 12px; }
         .badge-lock { background: #c0392b; color: white; padding: 3px 12px; border-radius: 15px; font-size: 12px; }
 
-        /* 📋 MULTIMEDIALI DASHBOARD (Foydalanuvchi parallel sahifalari) */
+        /* 📋 MULTIMEDIALI DASHBOARD (Oxirgi ma'lumotlar sahifasi) */
         .content-layout { display: flex; gap: 10px; height: calc(100vh - 160px); }
-        
         .main-display {
             flex: 2.8; background: white; border: 2px solid #333; padding: 12px;
-            border-radius: 8px; overflow-y: auto; position: relative; box-shadow: inset 0 0 10px rgba(0,0,0,0.05);
+            border-radius: 8px; overflow-y: auto; position: relative;
         }
-        
         .side-menu { flex: 1.2; display: flex; flex-direction: column; gap: 8px; }
-        
         .btn-side {
             background: white; border: 2px solid #333; padding: 12px 4px;
             border-radius: 6px; font-weight: bold; font-size: 12px; text-align: center; cursor: pointer;
@@ -69,40 +63,24 @@
         }
         .btn-side.active { background: #aed6f1; border-color: var(--primary); }
 
-        /* Video Seksiya */
         .video-wrapper { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; border-radius: 6px; border: 1px solid #333; }
         .video-wrapper iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
 
-        /* Jadvallar (Key Words uchun) */
         .vocab-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 13px; }
         .vocab-table th, .vocab-table td { border: 1px solid #333; padding: 8px; text-align: left; }
         .vocab-table th { background-color: #f2f2f2; }
-
-        /* Iframe o'yinlar uchun */
         .game-frame { width: 100%; height: 98%; border: none; border-radius: 6px; }
 
-        /* Admin Content Qo'shish Oynasi (Forma) */
         .admin-form-box { background: white; border: 3px solid #333; padding: 15px; border-radius: 8px; }
         .form-group { margin-bottom: 15px; }
         .form-group label { display: block; font-weight: bold; margin-bottom: 5px; }
         .input-text { width: 100%; padding: 8px; border: 2px solid #333; box-sizing: border-box; }
         .textarea-main { width: 100%; height: 120px; resize: none; }
         
-        /* Sariq rangli ichki modallar */
-        .yellow-panel {
-            background: #fffde7; border: 2px dashed var(--primary); padding: 12px;
-            border-radius: 6px; margin-top: 10px; display: none;
-        }
+        .yellow-panel { background: #fffde7; border: 2px dashed var(--primary); padding: 12px; border-radius: 6px; margin-top: 10px; display: none; }
 
-        /* Pastki Ruxsat etilgan Bloklar (Footer) */
-        .footer-bar {
-            position: fixed; bottom: 0; left: 0; width: 100%;
-            display: flex; height: 55px; background: white; border-top: 2px solid #ccc;
-        }
-        .footer-tab {
-            flex: 1; display: flex; align-items: center; justify-content: center;
-            font-weight: bold; border-right: 1px solid #ccc; cursor: pointer;
-        }
+        .footer-bar { position: fixed; bottom: 0; left: 0; width: 100%; display: flex; height: 55px; background: white; border-top: 2px solid #ccc; }
+        .footer-tab { flex: 1; display: flex; align-items: center; justify-content: center; font-weight: bold; border-right: 1px solid #ccc; cursor: pointer; }
 
         .switch-mode { position: fixed; top: 8px; right: 8px; z-index: 9999; font-size: 11px; font-weight: bold; background: #e0e0e0; border: 1px solid #999; padding: 3px 6px; border-radius: 4px; }
     </style>
@@ -111,15 +89,41 @@
 
     <button class="switch-mode" onclick="toggleMode()">🔄 Admin ⇆ Obunachi</button>
 
-    <div id="scr-admin-themes" class="screen">
-        <div class="header">Cambridge IELTS - Unit 1</div>
+    <div id="scr-admin-books" class="screen active">
+        <div class="header">MENING DARSXONAM (ADMIN)</div>
+        <button class="btn-main btn-add" onclick="alert('Yangi kitob qo\'shish modali')">+Add book</button>
+        <div id="admin-books-container">
+            <div class="btn-main" onclick="changeScreen('scr-admin-units')">Cambridge IELTS 19</div>
+            <div class="btn-main" onclick="alert('Essential Words unitlari...')">Essential words 4000</div>
+        </div>
+    </div>
+
+    <div id="scr-admin-units" class="screen">
+        <div class="header">Cambridge IELTS 19 - Bo'limlar</div>
         <div class="nav-header">
-            <button class="btn-box" onclick="changeScreen('scr-admin-home')">back</button>
-            <button class="btn-box" onclick="changeScreen('scr-admin-home')">Home</button>
+            <button class="btn-box" onclick="changeScreen('scr-admin-books')">back</button>
+            <button class="btn-box" onclick="changeScreen('scr-admin-books')">Home</button>
+        </div>
+        <button class="btn-main btn-add" onclick="alert('Yangi Unit qo\'shish')">+Add unit</button>
+        <div id="admin-units-container">
+            <div class="item-row" onclick="changeScreen('scr-admin-themes')">
+                <span>Unit 1</span> <i class="fa-solid fa-chevron-right"></i>
+            </div>
+            <div class="item-row" onclick="alert('Unit 2 boshqaruvi')">
+                <span>Unit 2</span> <i class="fa-solid fa-chevron-right"></i>
+            </div>
+        </div>
+    </div>
+
+    <div id="scr-admin-themes" class="screen">
+        <div class="header">Unit 1 - Mavzular</div>
+        <div class="nav-header">
+            <button class="btn-box" onclick="changeScreen('scr-admin-units')">back</button>
+            <button class="btn-box" onclick="changeScreen('scr-admin-books')">Home</button>
         </div>
         <button class="btn-main btn-add" onclick="changeScreen('scr-admin-add-theme')">+ADD theme</button>
         <div id="admin-themes-container">
-            <div class="btn-main" onclick="alert('Mavzu tahrirlash')">Reading 1</div>
+            <div class="btn-main" onclick="alert('Mavzuni tahrirlash')">Reading 1</div>
         </div>
     </div>
 
@@ -137,7 +141,7 @@
                     
                     <div id="panel-video" class="yellow-panel">
                         <label style="color: #2481cc;">Link kiriting:</label>
-                        <input type="text" id="adm-video-url" class="input-text" style="margin: 5px 0;" placeholder="https://youtube.com/embed/...">
+                        <input type="text" class="input-text" style="margin: 5px 0;" placeholder="https://youtube.com/embed/...">
                         <button class="btn-box" onclick="closeYellowPanels()">Yopish</button>
                     </div>
 
@@ -146,8 +150,8 @@
                         <div style="margin-top: 10px;"><button class="btn-box" onclick="closeYellowPanels()">Yopish</button></div>
                     </div>
 
-                    <div id="panel-games" class="yellow-panel" style="font-size: 11px;">
-                        <div>Flashcard link: <input type="text" id="adm-game-flash" class="input-text" placeholder="Havola..."></div>
+                    <div id="panel-games" class="yellow-panel">
+                        <div>Wordwall link: <input type="text" class="input-text" placeholder="Havola..."></div>
                         <button class="btn-box" style="margin-top:5px;" onclick="closeYellowPanels()">Yopish</button>
                     </div>
                 </div>
@@ -155,7 +159,7 @@
                 <div class="side-menu">
                     <button class="btn-side" onclick="openYellowPanel('panel-video')">+add video</button>
                     <button class="btn-side" onclick="openYellowPanel('panel-words')">+add key words</button>
-                    <button class="btn-side" onclick="alert('Test yaratish oynasi')">+add test</button>
+                    <button class="btn-side" onclick="alert('Test yaratish')">+add test</button>
                     <button class="btn-side" onclick="openYellowPanel('panel-games')">+add game</button>
                 </div>
             </div>
@@ -168,21 +172,58 @@
     </div>
 
 
-    <div id="scr-user-themes" class="screen">
-        <div class="header">Unit 1</div>
+    <div id="scr-user-books" class="screen">
+        <div class="header">MY CLASSROOM</div>
+        <div id="user-books-container">
+            <button class="btn-main" onclick="changeScreen('scr-user-units')">Cambridge IELTS 19</button>
+            <button class="btn-main" onclick="alert('Essential Words tanlandi')">Essential words 4000</button>
+            <button class="btn-main" onclick="alert('Read and Understand tanlandi')">Read and Understand</button>
+        </div>
+        <div class="footer-bar">
+            <div class="footer-tab" style="background: #e8f4f8;">PAYMENTS</div>
+            <div class="footer-tab">CLICK</div>
+            <div class="footer-tab">PAYME</div>
+            <div class="footer-tab">VISA</div>
+        </div>
+    </div>
+
+    <div id="scr-user-units" class="screen">
+        <div class="header">Cambridge IELTS 19</div>
         <div class="nav-header">
-            <button class="btn-box" onclick="changeScreen('scr-user-home')">back</button>
+            <button class="btn-box" onclick="changeScreen('scr-user-books')">back</button>
+        </div>
+        
+        <div class="item-row" onclick="changeScreen('scr-user-themes')">
+            <span>Unit 1</span> <span class="badge-free">bepul</span>
+        </div>
+        <div class="item-row" onclick="alert('Bu unit qulflangan! Faollashtirish uchun obuna bo\'ling.')">
+            <span>Unit 2</span> <span class="badge-lock">lock</span>
+        </div>
+        <div class="item-row" onclick="alert('Bu unit qulflangan!')">
+            <span>Unit 3</span> <span class="badge-lock">lock</span>
+        </div>
+
+        <div class="footer-bar">
+            <div class="footer-tab" onclick="changeScreen('scr-user-books')">HOME</div>
+            <div class="footer-tab">PAYMENTS</div>
+        </div>
+    </div>
+
+    <div id="scr-user-themes" class="screen">
+        <div class="header">Unit 1 - Mavzular</div>
+        <div class="nav-header">
+            <button class="btn-box" onclick="changeScreen('scr-user-units')">back</button>
         </div>
         
         <div class="item-row" style="background: #d4efdf; border-color: var(--success);" onclick="openUserTheme('Reading 1')">
             <span>reading 1</span> <span class="badge-free">bepul</span>
         </div>
-        <div class="item-row" onclick="alert('Bu bo\'lim qulflangan!')">
+        <div class="item-row" onclick="alert('Mavzu qulflangan')">
             <span>reading 2</span> <span class="badge-lock">lock</span>
         </div>
 
         <div class="footer-bar">
-            <div class="footer-tab" onclick="changeScreen('scr-user-home')">HOME</div>
+            <div class="footer-tab" onclick="changeScreen('scr-user-books')">HOME</div>
             <div class="footer-tab">PAYMENTS</div>
         </div>
     </div>
@@ -200,7 +241,7 @@
                     <h4 style="margin-top: 0;">How tennis rackets have changed</h4>
                     <p style="font-size: 13px; line-height: 1.6; color: #444;">
                         In 2016, the British professional tennis player Andy Murray was ranked as the world's number one...
-                        Matnning toʻliq qismi shu yerda joylashadi va obunachi uni pastga bemalol skrol qilib oʻqiydi.
+                        Matn darsligi shu yerda to'liq joylashadi.
                     </p>
                 </div>
 
@@ -208,26 +249,22 @@
                     <div class="video-wrapper">
                         <iframe src="https://www.youtube.com/embed/dQw4w9WgXcQ" allowfullscreen></iframe>
                     </div>
-                    <p style="font-size: 12px; margin-top: 8px; font-weight: bold; text-align: center;">Darslik Video Sharhi</p>
                 </div>
 
                 <div id="sec-words" style="display:none;">
                     <table class="vocab-table">
-                        <thead>
-                            <tr><th>Word</th><th>Translation</th></tr>
-                        </thead>
+                        <thead><tr><th>Word</th><th>Translation</th></tr></thead>
                         <tbody>
                             <tr><td><b>Professional</b></td><td>Professional, kasbiy</td></tr>
                             <tr><td><b>Ranked</b></td><td>O'rin egallagan</td></tr>
-                            <tr><td><b>Improve</b></td><td>Yaxshilamoq</td></tr>
                             <tr><td><b>Equipment</b></td><td>Jihoz, uskuna</td></tr>
                         </tbody>
                     </table>
                 </div>
 
                 <div id="sec-test" style="display:none; text-align: center; padding-top: 20px;">
-                    <h3 style="color: var(--primary);">IELTS Reading Test</h3>
-                    <button class="btn-main" style="border-color: #333;" onclick="alert('Test boshlandi!')">Start Test</button>
+                    <h3>IELTS Test System</h3>
+                    <button class="btn-main" style="border-color:#333;">Start Test</button>
                 </div>
 
                 <div id="sec-game" style="display:none; height: 100%;">
@@ -246,13 +283,10 @@
         </div>
 
         <div class="footer-bar">
-            <div class="footer-tab" onclick="changeScreen('scr-user-home')">HOME</div>
+            <div class="footer-tab" onclick="changeScreen('scr-user-books')">HOME</div>
             <div class="footer-tab">PAYMENTS</div>
         </div>
     </div>
-
-    <div id="scr-admin-home" class="screen active"><div class="header">ADMIN ASOSIY OYNA</div><button class="btn-main" onclick="changeScreen('scr-admin-themes')">Cambridge IELTS (Unit 1 boshqaruvi)</button></div>
-    <div id="scr-user-home" class="screen"><div class="header">MY CLASSROOM</div><button class="btn-main" onclick="changeScreen('scr-user-themes')">Cambridge IELTS</button></div>
 
     <script>
         const tg = window.Telegram.WebApp;
@@ -284,19 +318,14 @@
             }
         }
 
-        // 🔄 Obunachi Parallel Oynalarini Almashtirish Mantiqi
         function switchUserTab(tab) {
-            // Hamma tugmalardan 'active' klassini olib tashlash
             document.querySelectorAll('.btn-side').forEach(b => b.classList.remove('active'));
-            
-            // Hamma kontent ekranlarini yopish
             document.getElementById('sec-matn').style.display = 'none';
             document.getElementById('sec-video').style.display = 'none';
             document.getElementById('sec-words').style.display = 'none';
             document.getElementById('sec-test').style.display = 'none';
             document.getElementById('sec-game').style.display = 'none';
 
-            // Tanlangan ekran va tugmani faollashtirish
             document.getElementById('tab-' + tab).classList.add('active');
             document.getElementById('sec-' + tab).style.display = 'block';
         }
@@ -304,17 +333,17 @@
         function openUserTheme(name) {
             document.getElementById('user-content-title').innerText = name;
             changeScreen('scr-user-content');
-            switchUserTab('matn'); // standart har doim Matn bilan ochiladi
+            switchUserTab('matn');
         }
 
         let currentMode = 'admin';
         function toggleMode() {
             if(currentMode === 'admin') {
                 currentMode = 'user';
-                changeScreen('scr-user-home');
+                changeScreen('scr-user-books');
             } else {
                 currentMode = 'admin';
-                changeScreen('scr-admin-home');
+                changeScreen('scr-admin-books');
             }
         }
     </script>
