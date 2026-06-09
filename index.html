@@ -3,113 +3,278 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LMS Vocabulary Platform</title>
+    <title>LMS My Classroom</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
+        :root {
+            --tg-theme-bg: #f0f2f5;
+            --primary-color: #2481cc;
+            --admin-color: #eb4d4b;
+            --text-color: #2c3e50;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #f4f7f6;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--tg-theme-bg);
             margin: 0;
-            padding: 15px;
-            color: #333;
+            padding: 0;
+            color: var(--text-color);
+            overflow-x: hidden;
         }
+
+        /* Header dizayni */
         .header {
-            text-align: center;
-            background: linear-gradient(135deg, #24292e, #2f363d);
-            color: white;
+            background: white;
             padding: 20px;
-            border-radius: 12px;
-            margin-bottom: 20px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            text-align: center;
+            border-bottom-left-radius: 25px;
+            border-bottom-right-radius: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
         }
-        .header h1 { margin: 0; font-size: 22px; }
-        .header p { margin: 5px 0 0 0; opacity: 0.8; font-size: 14px; }
-        
-        .section-title {
-            font-size: 16px;
+
+        .header h1 {
+            margin: 0;
+            font-size: 20px;
+            color: var(--primary-color);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .header .user-name {
+            font-size: 18px;
             font-weight: bold;
-            margin: 15px 5px 10px 5px;
-            color: #555;
+            margin-top: 10px;
+            display: block;
         }
-        .button-grid {
-            display: grid;
-            grid-template-columns: 1fr;
-            gap: 12px;
+
+        /* Konteynerlar */
+        .container {
+            padding: 20px;
+            display: none; /* JS orqali boshqariladi */
         }
-        .btn {
-            background-color: white;
-            border: 2px solid #e1e4e8;
-            padding: 15px;
-            border-radius: 10px;
-            font-size: 16px;
-            font-weight: 600;
-            cursor: pointer;
+
+        .active { display: block; }
+
+        .section-title {
+            font-size: 18px;
+            font-weight: bold;
+            margin: 20px 0 15px 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        /* Kitoblar ro'yxati */
+        .book-card {
+            background: white;
+            padding: 15px 20px;
+            border-radius: 15px;
+            margin-bottom: 12px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            transition: all 0.2s ease;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid #edf2f7;
+            transition: 0.2s;
         }
-        .btn:active {
-            background-color: #f0f3f6;
-            transform: scale(0.98);
+
+        .book-card:active { transform: scale(0.98); background: #f8f9fa; }
+
+        .book-info { display: flex; align-items: center; gap: 15px; }
+        .book-icon { color: var(--primary-color); font-size: 20px; }
+        .book-name { font-weight: 600; font-size: 16px; }
+
+        /* Admin tugmalari */
+        .admin-add-btn {
+            background: white;
+            border: 2px dashed var(--primary-color);
+            color: var(--primary-color);
+            width: 100%;
+            padding: 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 16px;
+            cursor: pointer;
+            margin-bottom: 20px;
         }
-        .btn-icon { font-size: 20px; }
-        .game-btn {
-            background: linear-gradient(135deg, #007bff, #0056b3);
-            color: white;
+
+        /* Pastki Menyu (Navigatsiya) */
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+            background: white;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            padding: 10px 0;
+            border-top: 1px solid #eee;
+            box-shadow: 0 -5px 20px rgba(0,0,0,0.05);
+        }
+
+        .nav-item {
+            text-align: center;
+            font-size: 11px;
+            color: #7f8c8d;
+            cursor: pointer;
+            background: none;
             border: none;
         }
-        .game-btn:active { background: #004085; }
+
+        .nav-item i { font-size: 20px; margin-bottom: 4px; display: block; }
+        .nav-item.active { color: var(--primary-color); }
+
+        /* Admin Maxsus Paneli */
+        .admin-footer-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-top: 30px;
+        }
+
+        .admin-action-card {
+            background: white;
+            padding: 15px 5px;
+            border-radius: 12px;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+
+        .admin-action-card i { font-size: 18px; margin-bottom: 8px; color: var(--admin-color); display: block; }
+
+        /* Ko'rinishni almashtirish tugmasi (Test uchun) */
+        .switch-mode {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            background: #eee;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 10px;
+            z-index: 1000;
+        }
     </style>
 </head>
 <body>
 
+    <button class="switch-mode" onclick="toggleView()">🔄 Admin/User</button>
+
     <div class="header">
-        <h1 id="user-title">LMS Platformasi</h1>
-        <p>Cambridge IELTS Vocabulary & Games</p>
+        <h1 id="page-title">MY CLASSROOM</h1>
+        <span class="user-name" id="welcome-name">Salom, Abdug'ani!</span>
     </div>
 
-    <div class="section-title">📘 Darsliklar va Bo'limlar</div>
-    <div class="button-grid">
-        <button class="btn" onclick="showAlert('Cambridge IELTS tanlandi')">
-            <span>📘 Cambridge IELTS 19</span>
-            <span class="btn-icon">➡️</span>
-        </button>
-        <button class="btn" onclick="showAlert('Unit 1 darslari')">
-            <span>📂 Unit 1: Reading Vocabulary</span>
-            <span class="btn-icon">➡️</span>
-        </button>
+    <div id="user-view" class="container active">
+        <div class="section-title">
+            <i class="fa-solid fa-book"></i> Books
+        </div>
+        
+        <div id="book-list">
+            <div class="book-card" onclick="openBook('Cambridge IELTS')">
+                <div class="book-info">
+                    <i class="fa-solid fa-book-open book-icon"></i>
+                    <span class="book-name">Cambridge IELTS 19</span>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #ccc;"></i>
+            </div>
+
+            <div class="book-card" onclick="openBook('Essential Words')">
+                <div class="book-info">
+                    <i class="fa-solid fa-book-open book-icon"></i>
+                    <span class="book-name">Essential words 4000</span>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #ccc;"></i>
+            </div>
+
+            <div class="book-card" onclick="openBook('Read and Understand')">
+                <div class="book-info">
+                    <i class="fa-solid fa-book-open book-icon"></i>
+                    <span class="book-name">Read and Understand</span>
+                </div>
+                <i class="fa-solid fa-chevron-right" style="color: #ccc;"></i>
+            </div>
+        </div>
+
+        <div class="bottom-nav">
+            <div class="nav-item">
+                <i class="fa-solid fa-wallet"></i> Payments
+            </div>
+            <div class="nav-item">
+                <i class="fa-solid fa-mouse-pointer"></i> Click
+            </div>
+            <div class="nav-item">
+                <i class="fa-solid fa-p"></i> Payme
+            </div>
+            <div class="nav-item">
+                <i class="fa-brands fa-cc-visa"></i> Visa
+            </div>
+        </div>
     </div>
 
-    <div class="section-title">🎮 Wordwall Web App O'yinlari</div>
-    <div class="button-grid">
-        <a href="https://wordwall.net/embed/flashcard" style="text-decoration: none;">
-            <button class="btn game-btn">
-                <span>🎮 Play Flashcards</span>
-                <span class="btn-icon">⚡</span>
-            </button>
-        </a>
-        <a href="https://wordwall.net/embed/match" style="text-decoration: none;">
-            <button class="btn game-btn">
-                <span>🎮 Play Match Words</span>
-                <span class="btn-icon">🧩</span>
-            </button>
-        </a>
+    <div id="admin-view" class="container">
+        <button class="admin-add-btn">
+            <i class="fa-solid fa-plus-circle"></i> +Add book
+        </button>
+
+        <div style="height: 200px; background: rgba(255,255,255,0.5); border-radius: 15px; border: 2px dashed #ccc; display: flex; align-items: center; justify-content: center; color: #999;">
+            Yangi kitoblar ro'yxati bu yerda shakllanadi
+        </div>
+
+        <div class="admin-footer-grid">
+            <div class="admin-action-card" onclick="adminAction('Payment setting')">
+                <i class="fa-solid fa-gears"></i>
+                SET The Payments
+            </div>
+            <div class="admin-action-card" onclick="adminAction('Subscribers list')">
+                <i class="fa-solid fa-users-gear"></i>
+                Manage Subscribers
+            </div>
+            <div class="admin-action-card" onclick="adminAction('Massege system')">
+                <i class="fa-solid fa-comment-dots"></i>
+                Message
+            </div>
+        </div>
     </div>
 
     <script>
-        // Telegram Web App ob'ektini ishga tushirish
         const tg = window.Telegram.WebApp;
-        tg.expand(); // Oynani birdaniga katta qilib ochish
+        tg.expand();
 
-        // Foydalanuvchi ismini Telegramdan olib ekranga chiqarish
+        // Ismni Telegramdan olish
         if (tg.initDataUnsafe && tg.initDataUnsafe.user) {
-            document.getElementById('user-title').innerText = "Salom, " + tg.initDataUnsafe.user.first_name + "!";
+            document.getElementById('welcome-name').innerText = "Salom, " + tg.initDataUnsafe.user.first_name + "!";
         }
 
-        function showAlert(text) {
-            tg.MainButton.setText(text);
+        // Foydalanuvchi va Admin ko'rinishini almashtirish
+        let isAdmin = false;
+        function toggleView() {
+            isAdmin = !isAdmin;
+            const userView = document.getElementById('user-view');
+            const adminView = document.getElementById('admin-view');
+            const title = document.getElementById('page-title');
+
+            if(isAdmin) {
+                userView.classList.remove('active');
+                adminView.classList.add('active');
+                title.innerText = "ADMIN PANEL";
+                title.style.color = "#eb4d4b";
+            } else {
+                adminView.classList.remove('active');
+                userView.classList.add('active');
+                title.innerText = "MY CLASSROOM";
+                title.style.color = "#2481cc";
+            }
+        }
+
+        function openBook(name) {
+            tg.showPopup({ message: name + " kitobi tanlandi. Tez orada unitlar ochiladi!" });
+        }
+
+        function adminAction(action) {
+            tg.MainButton.setText(action + " ochilmoqda...");
             tg.MainButton.show();
         }
     </script>
